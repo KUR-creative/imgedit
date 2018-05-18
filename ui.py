@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
+
 drawing = False # true if mouse is pressed
-mode = False # if True, draw rectangle. Press 'm' to toggle to curve
+mode = True # if True, draw rectangle. Press 'm' to toggle to curve
 ix,iy = -1,-1
+
 # mouse callback function
 def draw_mask(event,x,y,flags,params):
     global ix,iy,drawing,mode
