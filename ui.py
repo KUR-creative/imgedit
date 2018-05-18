@@ -23,7 +23,8 @@ def draw_mask(event,x,y,flags,params):
         else:
             cv2.circle(mask,(x,y),pen_size, (0,0,0), -1)
 
-def get_mask_ui(bg): # bg is standardized image(img / 255)
+def get_mask_ui(bg, elem_type=np.float32): 
+    # bg is normalized image(img / 255)
     global mode
     not_mask = np.ones(bg.shape, np.float32)
 
@@ -43,16 +44,25 @@ def get_mask_ui(bg): # bg is standardized image(img / 255)
         elif k == 13: #ESC = 27, CarriageReturn(enter) = 13
             break
 
-    mask = np.logical_not(not_mask).astype(np.float32)
+    mask = np.logical_not(not_mask).astype(elem_type)
     return mask
 
 import unittest
 class Test_get_mask_ui(unittest.TestCase):
+    #@unittest.skip('later')
     def test_default_type_is_float32(self):
         bg = cv2.imread('./data/clean_manga/006.jpg') / 255
         mask = get_mask_ui(bg)
+        cv2.imshow('bg',bg); cv2.waitKey(0)
         cv2.imshow('mask',mask); cv2.waitKey(0)
         self.assertEqual(mask.dtype, np.float32)
+
+    def test_mask_type_passed(self):
+        bg = cv2.imread('./data/clean_manga/006.jpg') / 255
+        mask = get_mask_ui(bg, bool)
+        #cv2.imshow('bg',bg); cv2.waitKey(0)
+        #cv2.imshow('mask',mask); cv2.waitKey(0)
+        self.assertEqual(mask.dtype, bool)
 
 if __name__ == '__main__':
     #bg_img = cv2.imread('./data/clean_manga/006.jpg') / 255
