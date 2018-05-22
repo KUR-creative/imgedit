@@ -66,6 +66,13 @@ class Test_get_mask_ui(unittest.TestCase):
         #cv2.imshow('mask',mask); cv2.waitKey(0)
         self.assertEqual(mask.dtype, bool)
 
+        mask = get_mask_ui(bg, np.uint8)
+        self.assertEqual(mask.dtype, np.uint8)
+
+    #def test_channel_selection(self):
+    #    pass
+
+
 if __name__ == '__main__':
     #bg_img = cv2.imread('./data/clean_manga/006.jpg') / 255
     #mask = get_mask_ui(bg_img) 
