@@ -1,18 +1,11 @@
 # separate rgb/grayscale file.
-import cv2, pathlib, shutil
+
+import pathlib, shutil, cv2
 import numpy as np
-from ui import get_mask_ui
+
 import utils
+from fp import pipe, cmap, cfilter
 
-from pymonad.Reader import curry
-import functools
-def pipe(*functions):
-    def pipe2(f, g):
-        return lambda x: g(f(x))
-    return functools.reduce(pipe2, functions, lambda x: x)
-
-cfilter = curry(lambda f,xs: filter(f,xs))
-cmap = curry(lambda f,xs: map(f,xs))
 
 path2img_path = lambda path: (cv2.imread(path), path)
 is_grayscale = (lambda img: 
