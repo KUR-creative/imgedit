@@ -1,4 +1,26 @@
-import shutil, os, pathlib
+import shutil, os, pathlib, sys, time
+
+class ElapsedTimer(object):
+    def __init__(self,msg='Elapsed'):
+        self.start_time = time.time()
+        self.msg = msg
+    def elapsed(self,sec):
+        if sec < 60:
+            return str(sec) + " sec"
+        elif sec < (60 * 60):
+            return str(sec / 60) + " min"
+        else:
+            return str(sec / (60 * 60)) + " hr"
+    def elapsed_time(self):
+        print(self.msg + ": %s " % self.elapsed(time.time() - self.start_time),
+              flush=True)
+        return (self.msg + ": %s " % self.elapsed(time.time() - self.start_time))
+
+def help_option(msg):
+    if '-h' in sys.argv or '--help' in sys.argv:
+        print(msg)
+        exit()
+
 def safe_copytree(srcpath, dstpath, *ignores):
     ''' 
     if dst_path doesn't exists,
