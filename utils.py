@@ -1,7 +1,10 @@
 import shutil, os, pathlib
-def safe_copytree(src, dst, *ignores):
+def safe_copytree(srcpath, dstpath, *ignores):
     ''' 
-    copy directory tree if dst(arg) path doesn't exists.
+    if dst_path doesn't exists,
+    it creates new directory and copy all of contents under src
+    except *ignores.
+
     src must exists.
     dst must not exists.
 
@@ -9,7 +12,7 @@ def safe_copytree(src, dst, *ignores):
     safe_copytree(src_dir_path, dst_dir_path, '*.*') 
     '''
     try:
-        shutil.copytree(src, dst, 
+        shutil.copytree(srcpath, dstpath, 
                         ignore=shutil.ignore_patterns(*ignores))
     except Exception as e:
         print(e)
@@ -31,6 +34,17 @@ def replace_part_of(srcpath, old_part, new_part):
     parts = [part.replace(old_part,new_part) for part in p.parts]
     return pathlib.Path(*parts)
 
+def make_dstpath(srcpath, old_parent, new_ancestors):
+    '''
+    discard part of path until old_parent,
+    and put new_ancestors into path
+
+    ex) make_dstpath('a/b/cd/dx','cd','123/456') -> '123/456/dx'
+    '''
+    p = pathlib.Path(srcpath)
+    idx = p.parts.index(old_parent)
+    return str(pathlib.Path(new_ancestors) \
+                      .joinpath(*p.parts[idx+1:]))
 
 import unittest
 class Test_replace_part_of_path(unittest.TestCase):
@@ -49,4 +63,6 @@ class Test_replace_part_of_path(unittest.TestCase):
         self.assertEqual(p,replace_part_of(p,'xx','asd'))
 
 if __name__ == '__main__':
+    print(make_dstpath('./asd/fde/gcd/sdf.jpg','gcd','./aaa/dx/'))
+    print(make_dstpath('a/b/cd/dx','cd','123/456'))
     unittest.main()
