@@ -27,7 +27,8 @@ if __name__ == '__main__':
     mixed_imgs_path = sys.argv[1]
     rgb_imgs_path = sys.argv[2]
 
-    utils.safe_copytree(mixed_imgs_path, rgb_imgs_path, '*.*')
+    utils.safe_copytree(mixed_imgs_path, rgb_imgs_path, 
+                        ('*.jpg', '*.jpeg', '*.png'))
     f = pipe(utils.file_paths, 
              cmap(path2img_path),
              cfilter(lambda img_path: img_path[0] is not None),

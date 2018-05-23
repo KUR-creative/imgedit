@@ -21,7 +21,7 @@ def help_option(msg):
         print(msg)
         exit()
 
-def safe_copytree(srcpath, dstpath, *ignores):
+def safe_copytree(srcpath, dstpath, ignores):
     ''' 
     if dst_path doesn't exists,
     it creates new directory and copy all of contents under src
