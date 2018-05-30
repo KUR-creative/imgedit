@@ -4,7 +4,7 @@ from pymonad.Reader import curry
 
 import utils
 from itertools import repeat, cycle
-from fp import pipe, cmap, cfilter, flatten, crepeat
+from fp import pipe, cmap, cfilter, flatten, crepeat, cflatMap
 
 def sqr_origin_yx(h, w, size):
     return random.randrange(h-size+1), random.randrange(w-size+1)
@@ -96,8 +96,7 @@ if __name__ == '__main__':
     pipe(utils.file_paths,
          cmap(lambda path: (cv2.imread(path), path)),
          cfilter(lambda img_path: img_path[0] is not None),
-         cmap(lambda img_path: repeat(img_path,num_crop)),
-         flatten,
+         cflatMap(lambda img_path: repeat(img_path,num_crop)),
          cmap(lambda img_path: \
                 (img2_128x128piece(img_path[0]), 
                  path2piece_path(img_path[1],next(gen_crop_id)))))

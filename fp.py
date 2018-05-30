@@ -8,6 +8,7 @@ def pipe(*functions):
 cmap = curry(lambda f,xs: map(f,xs))
 cfilter = curry(lambda f,xs: filter(f,xs))
 flatten = lambda x: itertools.chain.from_iterable(x)
+cflatMap = curry(lambda f,xs: flatten(cmap(f,xs)))
 
 '''
 def flip(func):
