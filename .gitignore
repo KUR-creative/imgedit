@@ -1,6 +1,9 @@
 *.pyc
-*.swp
 *.vim
+
+*.swp
+tags
+*.taghl
 
 *.jpg
 *.png

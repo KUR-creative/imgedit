@@ -2,6 +2,7 @@ import pathlib, shutil, sys, cv2
 import numpy as np
 
 import utils
+from utils import path2img_path
 from fp import pipe, cmap, cfilter
 
 utils.help_option(
@@ -18,7 +19,6 @@ python separator.py ./data/examples/ ./data/rgb
 '''
 )
 
-path2img_path = lambda path: (cv2.imread(path), path)
 is_grayscale = (lambda img: 
                   np.all(img[:,:,0] == img[:,:,1]) and 
                   np.all(img[:,:,1] == img[:,:,2]))
