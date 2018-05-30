@@ -10,6 +10,10 @@ def path2rgbimg(imgpath):
     img = cv2.imread(imgpath)
     img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
     return img
+def grayimg_path2img(imgpath):
+    ''' grayimg is r=g=b image. '''
+    return cv2.imread(imgpath)[:,:,0]
+
 def sqr_origin_yx(h, w, size):
     return random.randrange(h-size+1), random.randrange(w-size+1)
 @curry
@@ -118,14 +122,16 @@ if __name__ == '__main__':
     num_crop = 3
     img2_128x128crop = img2sqr_crop(128)
     gen = pipe(utils.file_paths,
-               cmap(path2rgbimg),
+               cmap(lambda path: cv2.imread(path)),
                cfilter(lambda img: img is not None),
+               cmap(lambda img: img[:,:,0]),
                cflatMap(crepeat(num_crop)),
                cmap(lambda img:img2_128x128crop(img)))
 
     print(len(list(gen(src_imgs_path))))
     for img in gen(src_imgs_path):
         #cv2.imwrite(path,img)
+        print(img.shape)
         cv2.imshow('img',img);cv2.waitKey(0)
 
              
