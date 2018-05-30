@@ -82,6 +82,7 @@ class Test(unittest.TestCase):
 
 if __name__ == '__main__':
     #unittest.main()
+    '''
     src_imgs_path = 'examples'
     dst_imgs_path = 'squares'
     utils.safe_copytree(src_imgs_path, dst_imgs_path,
@@ -105,9 +106,22 @@ if __name__ == '__main__':
 
     for img,path in gen(src_imgs_path):
         cv2.imwrite(path,img)
-        '''
         cv2.imshow('img',img);cv2.waitKey(0)
         print(path)
-        '''
+    '''
+    #src_imgs_path = 'examples'
+    src_imgs_path = 'e'
+    num_crop = 3
+    img2_128x128crop = img2sqr_crop(128)
+    gen = pipe(utils.file_paths,
+               cmap(lambda path: cv2.imread(path)),
+               cfilter(lambda img: img is not None),
+               cflatMap(crepeat(num_crop)),
+               cmap(lambda img:img2_128x128crop(img)))
+
+    print(len(list(gen(src_imgs_path))))
+    for img in gen(src_imgs_path):
+        #cv2.imwrite(path,img)
+        cv2.imshow('img',img);cv2.waitKey(0)
 
              
