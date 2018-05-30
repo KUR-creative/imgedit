@@ -6,6 +6,10 @@ import utils
 from itertools import repeat, cycle
 from fp import pipe, cmap, cfilter, flatten, crepeat, cflatMap
 
+def path2rgbimg(imgpath):
+    img = cv2.imread(imgpath)
+    img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+    return img
 def sqr_origin_yx(h, w, size):
     return random.randrange(h-size+1), random.randrange(w-size+1)
 @curry
@@ -114,7 +118,7 @@ if __name__ == '__main__':
     num_crop = 3
     img2_128x128crop = img2sqr_crop(128)
     gen = pipe(utils.file_paths,
-               cmap(lambda path: cv2.imread(path)),
+               cmap(path2rgbimg),
                cfilter(lambda img: img is not None),
                cflatMap(crepeat(num_crop)),
                cmap(lambda img:img2_128x128crop(img)))
