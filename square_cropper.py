@@ -1,4 +1,4 @@
-import cv2, random
+import random, os, cv2
 import numpy as np
 from pymonad.Reader import curry
 
@@ -11,10 +11,26 @@ def img2sqr_piece(size, img):
     h,w = img.shape[:2]
     y,x = sqr_origin_yx(h, w, size)
     return img[y:y+size,x:x+size]
+def path2piece_path(path, num, delimiter='_'):
+    name, ext = os.path.splitext(path)
+    name = name + delimiter + str(num)
+    return name + ext
 
 import unittest
 import itertools
 class Test(unittest.TestCase):
+    def test_path2piece_path(self):
+        #gen_path = utils.file_paths('./examples/')
+        self.assertEqual(
+          path2piece_path(
+            '/examples/Kake Gurui/Chapter 013 - RAW/016.jpg', 0),
+          '/examples/Kake Gurui/Chapter 013 - RAW/016_0.jpg')
+        self.assertEqual(
+          path2piece_path(
+            '/examples/Kake Gurui/Chapter 013 - RAW/016.jpg', 12),
+          '/examples/Kake Gurui/Chapter 013 - RAW/016_12.jpg')
+
+    
     def test_sqr_origin_yx(self):
         size = 3
         h,w = 7,7
@@ -56,8 +72,10 @@ class Test(unittest.TestCase):
         img = cv2.imread('./examples/Kagamigami/Chapter 001 - RAW/004.jpg')
         img2_128x128piece = img2sqr_piece(128)
         imgs = itertools.repeat(img,5)
+        '''
         for square in map(img2_128x128piece, imgs):
             cv2.imshow('sqr',square); cv2.waitKey(0)
+        '''
 
 
 
