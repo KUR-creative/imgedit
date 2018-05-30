@@ -3,6 +3,8 @@ import numpy as np
 from pymonad.Reader import curry
 
 import utils
+from itertools import repeat
+from fp import pipe, cmap, cfilter
 
 def sqr_origin_yx(h, w, size):
     return random.randrange(h-size+1), random.randrange(w-size+1)
@@ -17,7 +19,6 @@ def path2piece_path(path, num, delimiter='_'):
     return name + ext
 
 import unittest
-import itertools
 class Test(unittest.TestCase):
     def test_path2piece_path(self):
         #gen_path = utils.file_paths('./examples/')
@@ -71,7 +72,7 @@ class Test(unittest.TestCase):
     def test_img2sqr_pieces(self):
         img = cv2.imread('./examples/Kagamigami/Chapter 001 - RAW/004.jpg')
         img2_128x128piece = img2sqr_piece(128)
-        imgs = itertools.repeat(img,5)
+        imgs = repeat(img,5)
         '''
         for square in map(img2_128x128piece, imgs):
             cv2.imshow('sqr',square); cv2.waitKey(0)
@@ -80,11 +81,21 @@ class Test(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    #unittest.main()
     src_imgs_path = 'examples'
     dst_imgs_path = 'squares'
     utils.safe_copytree(src_imgs_path, dst_imgs_path,
                         ['*.jpg', '*.jpeg', '*.png'])
 
-    img = cv2.imread('./examples/Kagamigami/Chapter 001 - RAW/004.jpg')
-    cv2.imshow('img',img); cv2.waitKey(0)
+    #img = cv2.imread('./examples/Kagamigami/Chapter 001 - RAW/004.jpg')
+    #cv2.imshow('img',img); cv2.waitKey(0)
+    num_crop = 5
+    f = pipe(utils.file_paths,
+             cmap(lambda path: (cv2.imread(path), path)),
+             cfilter(lambda img_path: img_path[0] is not None),
+
+             cmap(lambda img_path:\
+               (itertools.repeat(img_path[0],num_crop),
+                itertools.repeat(img_path[1],num_crop)))
+               
+             
