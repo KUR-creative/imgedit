@@ -2,7 +2,6 @@ import pathlib, shutil, sys, cv2
 import numpy as np
 
 import utils
-from utils import path2img_path
 from fp import pipe, cmap, cfilter
 
 utils.help_option(
@@ -30,7 +29,7 @@ if __name__ == '__main__':
     utils.safe_copytree(mixed_imgs_path, rgb_imgs_path, 
                         ('*.jpg', '*.jpeg', '*.png'))
     f = pipe(utils.file_paths, 
-             cmap(path2img_path),
+             cmap(lambda path: (cv2.imread(path), path)),
              cfilter(lambda img_path: img_path[0] is not None),
              cfilter(lambda img_path: not is_grayscale(img_path[0])))
     old_parent_dir = pathlib.Path(mixed_imgs_path).parts[-1]
