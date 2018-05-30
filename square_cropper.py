@@ -11,10 +11,9 @@ def img2sqr_piece(size, img):
     h,w = img.shape[:2]
     y,x = sqr_origin_yx(h, w, size)
     return img[y:y+size,x:x+size]
-def img2squares(size, img):
-    return img
 
 import unittest
+import itertools
 class Test(unittest.TestCase):
     def test_sqr_origin_yx(self):
         size = 3
@@ -53,6 +52,13 @@ class Test(unittest.TestCase):
             square = img2_15x15piece(img)
             self.assertEqual(square.shape[:2], (15,15))
 
+    def test_img2sqr_pieces(self):
+        img = cv2.imread('./examples/Kagamigami/Chapter 001 - RAW/004.jpg')
+        img2_128x128piece = img2sqr_piece(128)
+        imgs = itertools.repeat(img,5)
+        for square in map(img2_128x128piece, imgs):
+            cv2.imshow('sqr',square); cv2.waitKey(0)
+
 
 
 if __name__ == '__main__':
@@ -62,5 +68,5 @@ if __name__ == '__main__':
     utils.safe_copytree(src_imgs_path, dst_imgs_path,
                         ['*.jpg', '*.jpeg', '*.png'])
 
-    img,_ = path2img_path('./examples/Kagamigami/Chapter 001 - RAW/004.jpg')
+    img = cv2.imread('./examples/Kagamigami/Chapter 001 - RAW/004.jpg')
     cv2.imshow('img',img); cv2.waitKey(0)
