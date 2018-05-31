@@ -13,21 +13,25 @@ def path2rgbimg(imgpath):
     img = cv2.imread(imgpath)
     img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
     return img
+
 def slice1channel(img):
     ''' img is r=g=b image. '''
     return img[:,:,0].reshape(img.shape[:2] + (1,))
 
 def sqr_origin_yx(h, w, size):
     return random.randrange(h-size+1), random.randrange(w-size+1)
+
 @curry
 def img2sqr_crop(size, img):
     h,w,c = img.shape
     y,x = sqr_origin_yx(h, w, size)
     return img[y:y+size,x:x+size].reshape((size,size,c))
+
 def path2crop_path(path, num, delimiter='_', ext='png'):
     name, _ = os.path.splitext(path)
     name = name + delimiter + str(num)
     return name + '.' + ext
+
 def gen_chunk(iterable, chk_size):
     iters = [iter(iterable)] * chk_size
     return zip(*iters)
@@ -42,26 +46,24 @@ def split_every(n, iterable):
 def iter_mean(prev_mean,prev_size, now_sum,now_size):
     total = prev_size + now_size
     return (prev_mean*prev_size + now_sum)/total
-'''
-def gen_chunk(iterable, chk_size):
-    iters = [iter(iterable)] * chk_size
-    return zip(*iters)
-'''
 
 
 if __name__ == '__main__':
     #unittest.main()
-    #src_imgs_path = 'examples'
-    src_imgs_path = 'e'
+    src_imgs_path = 'H:\\DATA2\\f'
     dataset_name = 'gray128.h5'
-    chk_size = 100#00 
+    chk_size = 100 #00 
     num_crop = 3
-    img_size = 128
-    num_img_elems = (img_size**2)
+    crop_size = 128
+    num_imgs = len(list(utils.file_paths(src_imgs_path))) * num_crop
 
-    num_imgs \
-      = len(list(utils.file_paths(src_imgs_path))) * num_crop
-    img2_128x128crop = img2sqr_crop(img_size)
+    print('---------- SUMARY ----------')
+    print('    chunk size = ', chk_size)
+    print('number of crop = ', num_crop)
+    print('  size of crop = ', crop_size)
+    print('number of imgs = ', num_imgs)
+
+    img2_128x128crop = img2sqr_crop(crop_size)
     gen = pipe(utils.file_paths,
                cmap(lambda path: cv2.imread(path)),
                #cfilter(lambda img: img is not None),# imgs are pre-selected grayscale imgs.
@@ -73,50 +75,39 @@ if __name__ == '__main__':
 
     f = h5py.File(dataset_name,'w')
     #-------------------------------------------------------------
-    f.create_dataset('images', (num_imgs,img_size,img_size,1))
-    #print(len(list(gen(src_imgs_path))))
-    #mean = np.mean(
-    li = list(flatten(gen(src_imgs_path)))
-    real_mean = np.mean(li)
-    print('real MEAN:', real_mean)
-    print(len(li))
-    #183.25409671431737
+    f.create_dataset('images', (num_imgs,crop_size,crop_size,1))
 
     mean = 0
+    num_img_elems = (crop_size**2)
     for chk_no, chunk in tqdm(enumerate(gen(src_imgs_path)),
                               total=num_imgs//chk_size):
         beg_idx = chk_no * chk_size 
-        '''
-        if len(chunk) == chk_size:
-            f['images'][beg_idx:beg_idx+chk_size] = chunk
-        else:
-            f['images'][beg_idx:beg_idx+len(chunk)] = chunk
-        '''
         f['images'][beg_idx:beg_idx+chk_size] = chunk
-
         mean = iter_mean(mean, beg_idx*num_img_elems,
                          np.sum(chunk), len(chunk)*num_img_elems)
-        #cv2.imshow('img',img);cv2.waitKey(0)
-        #for img in chunk:
-            #cv2.imshow('img',img);cv2.waitKey(0)
-            # in idx = 98, wtf???
+
     f.create_dataset('mean_pixel_value', data=mean)
-    print('saved MEAN:', f['mean_pixel_value'][()])
+
+    # [mean test code]
+    #li = list(flatten(gen(src_imgs_path)))
+    #real_mean = np.mean(li)
+    #print('real MEAN:', real_mean)
+    #print(len(li))
+    #print('saved MEAN:', f['mean_pixel_value'][()])
     #-------------------------------------------------------------
     f.close()
 
+    # [load test code]
     f = h5py.File(dataset_name,'r')
     #-------------------------------------------------------------
     print('f', f['images'].shape)
-    num_imgs = f['images'].shape[0] 
     print('loaded MEAN:', f['mean_pixel_value'][()])
-    '''
-    for i in range(num_imgs):
-        cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
-    '''
+    #for i in range(f['images'].shape[0] ):
+        #cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
     cv2.imshow('img',f['images'][-1]);cv2.waitKey(0)
     #-------------------------------------------------------------
     f.close()
+
 
     '''
     src_imgs_path = 'examples'
