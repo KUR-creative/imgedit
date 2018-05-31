@@ -7,6 +7,8 @@ import utils
 from itertools import repeat, cycle, islice
 from fp import pipe, cmap, cfilter, flatten, crepeat, cflatMap
 
+#np.set_printoptions(threshold=np.nan, linewidth=np.nan)
+
 def path2rgbimg(imgpath):
     img = cv2.imread(imgpath)
     img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
@@ -152,6 +154,8 @@ if __name__ == '__main__':
                cmap(lambda img: (img / 255).astype(np.float32)),
                lambda imgs: split_every(chk_size, imgs))
 
+    '''
+    '''
     f = h5py.File(dataset_name,'w')
     #-------------------------------------------------------------
     f.create_dataset('images', (num_imgs,img_size,img_size,1))
@@ -159,8 +163,6 @@ if __name__ == '__main__':
     #mean = np.mean(
     print(np.mean(list(flatten(gen(src_imgs_path)))))
     #183.25409671431737
-    '''
-    '''
     for beg_idx, chunk in tqdm(enumerate(gen(src_imgs_path)),
                                total=num_imgs//chk_size):
         #print(type(chunk))
@@ -170,12 +172,14 @@ if __name__ == '__main__':
         else:
             f['images'][beg_idx:beg_idx+len(chunk)] = chunk
 
-        '''
-        #cv2.imwrite(path,img)
-        print(beg_idx)
-        for img in chk:
-            cv2.imshow('img',img);cv2.waitKey(0)
-        '''
+        #cv2.imshow('img',img);cv2.waitKey(0)
+        #for img in chunk:
+            #cv2.imshow('img',img);cv2.waitKey(0)
+            # in idx = 98, wtf???
+    print(f['images'][98])
+    cv2.imshow('img',f['images'][98]);cv2.waitKey(0)
+    print(f['images'][99])
+    cv2.imshow('img',f['images'][99]);cv2.waitKey(0)
     #-------------------------------------------------------------
     f.close()
 
@@ -184,7 +188,8 @@ if __name__ == '__main__':
     print('f', f['images'].shape)
     num_imgs = f['images'].shape[0] 
     for i in range(num_imgs):
-        print(f['images'][i],f['images'][i].dtype)
+        #print(f['images'][i],f['images'][i].dtype)
+        print(i,f['images'][i])
         cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
     #-------------------------------------------------------------
     f.close()
