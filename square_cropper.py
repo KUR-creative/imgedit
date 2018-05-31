@@ -3,7 +3,7 @@ import numpy as np
 from pymonad.Reader import curry
 
 import utils
-from itertools import repeat, cycle
+from itertools import repeat, cycle, islice
 from fp import pipe, cmap, cfilter, flatten, crepeat, cflatMap
 
 def path2rgbimg(imgpath):
@@ -28,6 +28,18 @@ def path2crop_path(path, num, delimiter='_', ext='png'):
 def gen_chunk(iterable, chk_size):
     iters = [iter(iterable)] * chk_size
     return zip(*iters)
+
+def split_every(n, iterable):
+    i = iter(iterable)
+    piece = list(islice(i, n))
+    while piece:
+        yield piece
+        piece = list(islice(i, n))
+'''
+def gen_chunk(iterable, chk_size):
+    iters = [iter(iterable)] * chk_size
+    return zip(*iters)
+'''
 
 import unittest
 class Test(unittest.TestCase):
@@ -121,9 +133,9 @@ if __name__ == '__main__':
         print(path)
     '''
     #src_imgs_path = 'examples'
-    chk_size = 2
-    dataset_name = 'gray128.h5'
     src_imgs_path = 'e'
+    dataset_name = 'gray128.h5'
+    chk_size = 4
     num_crop = 3
     img2_128x128crop = img2sqr_crop(128)
     gen = pipe(utils.file_paths,
@@ -132,18 +144,18 @@ if __name__ == '__main__':
                cmap(lambda img: img[:,:,0]),
                cflatMap(crepeat(num_crop)),
                cmap(lambda img: img2_128x128crop(img)),
-               lambda imgs: gen_chunk(imgs, chk_size))
+               lambda imgs: split_every(chk_size, imgs))
 
     #f = h5py.File(dataset_name,'w')
     #-------------------------------------------------------------
-    print(len(list(gen(src_imgs_path))))
+    #print(len(list(gen(src_imgs_path))))
     '''
     '''
-    for img in gen(src_imgs_path):
+    for idx, chk in enumerate(gen(src_imgs_path)):
         #cv2.imwrite(path,img)
-        print(img[0].shape,img[1].shape)
-        cv2.imshow('img',img[0]);cv2.waitKey(0)
-        cv2.imshow('img',img[1]);cv2.waitKey(0)
+        print(idx)
+        for img in chk:
+            cv2.imshow('img',img);cv2.waitKey(0)
     #-------------------------------------------------------------
     #f.close()
 
