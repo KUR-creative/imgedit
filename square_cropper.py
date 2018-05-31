@@ -91,6 +91,7 @@ if __name__ == '__main__':
                lambda imgs: split_every(chk_size, imgs))
 
     f = h5py.File(dataset_name,'w')
+    timer = utils.ElapsedTimer()
     #-------------------------------------------------------------
     f.create_dataset('images', (num_imgs,crop_size,crop_size,1))
 
@@ -115,6 +116,7 @@ if __name__ == '__main__':
     f.close()
     print('------------------------------------')
     print('dataset generated successfully.')
+    timer.elapsed_time()
 
     '''
     # [load test code]
