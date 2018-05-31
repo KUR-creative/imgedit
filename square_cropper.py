@@ -66,19 +66,18 @@ if __name__ == '__main__':
     args = parser.parse_args()
     src_imgs_path = args.src_imgs_path#'H:\\DATA2\\f'
     dataset_name = args.dataset_name#'gray128.h5'
-    num_crop = 3
-    crop_size = 128
+    num_crop = args.num_crop# 3
+    crop_size = args.crop_size#128
     chk_size = args.chk_size#100 #00 
 
-    num_chk = len(list(utils.file_paths(src_imgs_path)))
-    num_imgs = num_chk * num_crop
+    print(src_imgs_path)
+    num_imgs = len(list(utils.file_paths(src_imgs_path))) * num_crop
     print('-------------- SUMARY --------------')
     print('    dataset name = ', dataset_name)
     print('    size of crop = ', crop_size)
     print(' num of crop/img = ', num_crop)
     print('  number of imgs = ', num_imgs)
     print('      chunk size = ', chk_size)
-    print(' number of chunk = ', num_chk)
 
     img2_128x128crop = img2sqr_crop(crop_size)
     gen = pipe(utils.file_paths,
