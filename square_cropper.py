@@ -141,6 +141,7 @@ if __name__ == '__main__':
     chk_size = 5 
     num_crop = 3
     img_size = 128
+    num_img_elems = (img_size**2)
 
     num_imgs \
       = len(list(utils.file_paths(src_imgs_path))) * num_crop
@@ -162,10 +163,11 @@ if __name__ == '__main__':
     #print(len(list(gen(src_imgs_path))))
     #mean = np.mean(
     li = list(flatten(gen(src_imgs_path)))
-    print(np.mean(li))
+    print('real MEAN:', np.mean(li))
     print(len(li))
     #183.25409671431737
-    i = 0
+
+    mean = 0
     for chk_no, chunk in tqdm(enumerate(gen(src_imgs_path)),
                               total=num_imgs//chk_size):
         beg_idx = chk_no * chk_size 
@@ -177,10 +179,14 @@ if __name__ == '__main__':
         '''
         f['images'][beg_idx:beg_idx+chk_size] = chunk
 
+        #mean = iter_mean(mean, beg_idx*num_img_elems,
+                         #np.sum(chunk), len(chunk)*num_img_elems)
         #cv2.imshow('img',img);cv2.waitKey(0)
         #for img in chunk:
             #cv2.imshow('img',img);cv2.waitKey(0)
             # in idx = 98, wtf???
+    f.create_dataset('mean_pixel_value', data=mean)
+    print('saved MEAN:', f['mean_pixel_value'][()])
     #-------------------------------------------------------------
     f.close()
 
@@ -188,9 +194,10 @@ if __name__ == '__main__':
     #-------------------------------------------------------------
     print('f', f['images'].shape)
     num_imgs = f['images'].shape[0] 
+    print('loaded MEAN:', f['mean_pixel_value'][()])
     for i in range(num_imgs):
         #print(f['images'][i],f['images'][i].dtype)
-        print(i,f['images'][i])
+        #print(i,f['images'][i])
         cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
     #-------------------------------------------------------------
     f.close()
