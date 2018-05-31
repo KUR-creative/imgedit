@@ -1,9 +1,10 @@
-import random, os, cv2, h5py
+import utils
+import argparse
+import random, os, cv2, h5py, sys
 import numpy as np
 from pymonad.Reader import curry
 
 from tqdm import tqdm
-import utils
 from itertools import repeat, cycle, islice
 from fp import pipe, cmap, cfilter, flatten, crepeat, cflatMap
 
@@ -48,20 +49,36 @@ def iter_mean(prev_mean,prev_size, now_sum,now_size):
     return (prev_mean*prev_size + now_sum)/total
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument('-p', '--src_imgs_path',
+                    help='path of source images') 
+parser.add_argument('-d', '--dataset_name',
+                    help='name or path of dataset to be created') 
+parser.add_argument('-s', '--crop_size', type=int, 
+                    help='size of crop(=128 or 256 ...).') 
+parser.add_argument('-n', '--num_crop', type=int, 
+                    help='number of crops per 1 original image.') 
+parser.add_argument('-c', '--chk_size', type=int, 
+                    help='size of chunk of data for performance.') 
+
 if __name__ == '__main__':
     #unittest.main()
-    src_imgs_path = 'H:\\DATA2\\f'
-    dataset_name = 'gray128.h5'
-    chk_size = 100 #00 
+    args = parser.parse_args()
+    src_imgs_path = args.src_imgs_path#'H:\\DATA2\\f'
+    dataset_name = args.dataset_name#'gray128.h5'
     num_crop = 3
     crop_size = 128
-    num_imgs = len(list(utils.file_paths(src_imgs_path))) * num_crop
+    chk_size = args.chk_size#100 #00 
 
-    print('---------- SUMARY ----------')
-    print('    chunk size = ', chk_size)
-    print('number of crop = ', num_crop)
-    print('  size of crop = ', crop_size)
-    print('number of imgs = ', num_imgs)
+    num_chk = len(list(utils.file_paths(src_imgs_path)))
+    num_imgs = num_chk * num_crop
+    print('-------------- SUMARY --------------')
+    print('    dataset name = ', dataset_name)
+    print('    size of crop = ', crop_size)
+    print(' num of crop/img = ', num_crop)
+    print('  number of imgs = ', num_imgs)
+    print('      chunk size = ', chk_size)
+    print(' number of chunk = ', num_chk)
 
     img2_128x128crop = img2sqr_crop(crop_size)
     gen = pipe(utils.file_paths,
@@ -96,6 +113,8 @@ if __name__ == '__main__':
     #print('saved MEAN:', f['mean_pixel_value'][()])
     #-------------------------------------------------------------
     f.close()
+    print('------------------------------------')
+    print('dataset generated successfully.')
 
     '''
     # [load test code]
