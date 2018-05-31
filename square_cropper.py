@@ -13,9 +13,9 @@ def path2rgbimg(imgpath):
     img = cv2.imread(imgpath)
     img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
     return img
-def grayimg_path2img(imgpath):
-    ''' grayimg is r=g=b image. '''
-    return cv2.imread(imgpath)[:,:,0]
+def slice1channel(img):
+    ''' img is r=g=b image. '''
+    return img[:,:,0].reshape(img.shape[:2] + (1,))
 
 def sqr_origin_yx(h, w, size):
     return random.randrange(h-size+1), random.randrange(w-size+1)
@@ -47,6 +47,104 @@ def gen_chunk(iterable, chk_size):
     iters = [iter(iterable)] * chk_size
     return zip(*iters)
 '''
+
+
+if __name__ == '__main__':
+    #unittest.main()
+    #src_imgs_path = 'examples'
+    src_imgs_path = 'e'
+    dataset_name = 'gray128.h5'
+    chk_size = 100#00 
+    num_crop = 3
+    img_size = 128
+    num_img_elems = (img_size**2)
+
+    num_imgs \
+      = len(list(utils.file_paths(src_imgs_path))) * num_crop
+    img2_128x128crop = img2sqr_crop(img_size)
+    gen = pipe(utils.file_paths,
+               cmap(lambda path: cv2.imread(path)),
+               #cfilter(lambda img: img is not None),# imgs are pre-selected grayscale imgs.
+               cmap(slice1channel),
+               cflatMap(crepeat(num_crop)),
+               cmap(lambda img: img2_128x128crop(img)),
+               cmap(lambda img: (img / 255).astype(np.float32)),
+               lambda imgs: split_every(chk_size, imgs))
+
+    f = h5py.File(dataset_name,'w')
+    #-------------------------------------------------------------
+    f.create_dataset('images', (num_imgs,img_size,img_size,1))
+    #print(len(list(gen(src_imgs_path))))
+    #mean = np.mean(
+    li = list(flatten(gen(src_imgs_path)))
+    real_mean = np.mean(li)
+    print('real MEAN:', real_mean)
+    print(len(li))
+    #183.25409671431737
+
+    mean = 0
+    for chk_no, chunk in tqdm(enumerate(gen(src_imgs_path)),
+                              total=num_imgs//chk_size):
+        beg_idx = chk_no * chk_size 
+        '''
+        if len(chunk) == chk_size:
+            f['images'][beg_idx:beg_idx+chk_size] = chunk
+        else:
+            f['images'][beg_idx:beg_idx+len(chunk)] = chunk
+        '''
+        f['images'][beg_idx:beg_idx+chk_size] = chunk
+
+        mean = iter_mean(mean, beg_idx*num_img_elems,
+                         np.sum(chunk), len(chunk)*num_img_elems)
+        #cv2.imshow('img',img);cv2.waitKey(0)
+        #for img in chunk:
+            #cv2.imshow('img',img);cv2.waitKey(0)
+            # in idx = 98, wtf???
+    f.create_dataset('mean_pixel_value', data=mean)
+    print('saved MEAN:', f['mean_pixel_value'][()])
+    #-------------------------------------------------------------
+    f.close()
+
+    f = h5py.File(dataset_name,'r')
+    #-------------------------------------------------------------
+    print('f', f['images'].shape)
+    num_imgs = f['images'].shape[0] 
+    print('loaded MEAN:', f['mean_pixel_value'][()])
+    '''
+    for i in range(num_imgs):
+        cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
+    '''
+    cv2.imshow('img',f['images'][-1]);cv2.waitKey(0)
+    #-------------------------------------------------------------
+    f.close()
+
+    '''
+    src_imgs_path = 'examples'
+    dst_imgs_path = 'squares'
+    utils.safe_copytree(src_imgs_path, dst_imgs_path,
+                        ['*.jpg', '*.jpeg', '*.png'])
+    num_crop = 3
+    gen_crop_id = cycle(range(num_crop))
+    img2_128x128crop = img2sqr_crop(128)
+    gen = \
+    pipe(utils.file_paths,
+         cmap(lambda path: (cv2.imread(path), path)),
+         cfilter(lambda img_path: img_path[0] is not None),
+         cflatMap(lambda img_path: repeat(img_path,num_crop)),
+         cmap(lambda img_path: \
+                (img2_128x128crop(img_path[0]), 
+                 path2crop_path(img_path[1],next(gen_crop_id)))),
+         cmap(lambda img_path: \
+                (img_path[0], 
+                 utils.make_dstpath(img_path[1],
+                                    src_imgs_path,
+                                    dst_imgs_path))))
+
+    for img,path in gen(src_imgs_path):
+        cv2.imwrite(path,img)
+        cv2.imshow('img',img);cv2.waitKey(0)
+        print(path)
+    '''
 
 import unittest
 class Test(unittest.TestCase):
@@ -109,105 +207,39 @@ class Test(unittest.TestCase):
             cv2.imshow('sqr',square); cv2.waitKey(0)
         '''
 
+    def test_iter_mean(self):
+        expected = np.mean(np.arange(10))
+        mean = 0
+        chk_size = 2
+        for idx, chk in enumerate(split_every(chk_size,np.arange(10))):
+            beg_idx = idx * chk_size
+            print(beg_idx)
+            mean = iter_mean(mean, beg_idx, 
+                             np.sum(chk),chk_size)
+        self.assertAlmostEqual(expected,mean)
 
+        expected = np.mean([np.arange(10,20),
+                            np.arange(20,30),
+                            np.arange(30,40),
+                            np.arange(20,30),
+                            np.arange(30,40),
+                            np.arange(20,30),
+                            np.arange(30,40),
+                            np.arange(40,50),])
+        mean = 0
+        chk_size = 2
+        for idx, chk in enumerate(split_every(chk_size,
+                                              [np.arange(10,20),
+                                               np.arange(20,30),
+                                               np.arange(30,40),
+                                               np.arange(20,30),
+                                               np.arange(30,40),
+                                               np.arange(20,30),
+                                               np.arange(30,40),
+                                               np.arange(40,50),])):
+            beg_idx = idx * chk_size
+            print(beg_idx)
+            mean = iter_mean(mean, beg_idx*10, 
+                             np.sum(chk),len(chk)*10)
+        self.assertAlmostEqual(expected,mean)
 
-if __name__ == '__main__':
-    unittest.main()
-    #src_imgs_path = 'examples'
-    src_imgs_path = 'e'
-    dataset_name = 'gray128.h5'
-    chk_size = 5 
-    num_crop = 3
-    img_size = 128
-    num_img_elems = (img_size**2)
-
-    num_imgs \
-      = len(list(utils.file_paths(src_imgs_path))) * num_crop
-    img2_128x128crop = img2sqr_crop(img_size,1)
-    gen = pipe(utils.file_paths,
-               cmap(lambda path: cv2.imread(path)),
-               #cfilter(lambda img: img is not None),# imgs are pre-selected grayscale imgs.
-               cmap(lambda img: img[:,:,0]),
-               cflatMap(crepeat(num_crop)),
-               cmap(lambda img: img2_128x128crop(img)),
-               cmap(lambda img: (img / 255).astype(np.float32)),
-               lambda imgs: split_every(chk_size, imgs))
-
-    '''
-    '''
-    f = h5py.File(dataset_name,'w')
-    #-------------------------------------------------------------
-    f.create_dataset('images', (num_imgs,img_size,img_size,1))
-    #print(len(list(gen(src_imgs_path))))
-    #mean = np.mean(
-    li = list(flatten(gen(src_imgs_path)))
-    real_mean = np.mean(li)
-    print('real MEAN:', real_mean)
-    print(len(li))
-    #183.25409671431737
-
-    mean = 0
-    for chk_no, chunk in tqdm(enumerate(gen(src_imgs_path)),
-                              total=num_imgs//chk_size):
-        beg_idx = chk_no * chk_size 
-        '''
-        if len(chunk) == chk_size:
-            f['images'][beg_idx:beg_idx+chk_size] = chunk
-        else:
-            f['images'][beg_idx:beg_idx+len(chunk)] = chunk
-        '''
-        f['images'][beg_idx:beg_idx+chk_size] = chunk
-
-        if chk_no == 0:
-            mean = np.mean(chunk)
-        else:
-            mean = iter_mean(mean, beg_idx*chk_size*num_img_elems,
-                             np.sum(chunk), len(chunk)*num_img_elems)
-        #cv2.imshow('img',img);cv2.waitKey(0)
-        #for img in chunk:
-            #cv2.imshow('img',img);cv2.waitKey(0)
-            # in idx = 98, wtf???
-    f.create_dataset('mean_pixel_value', data=mean)
-    print('saved MEAN:', f['mean_pixel_value'][()])
-    #-------------------------------------------------------------
-    f.close()
-
-    f = h5py.File(dataset_name,'r')
-    #-------------------------------------------------------------
-    print('f', f['images'].shape)
-    num_imgs = f['images'].shape[0] 
-    print('loaded MEAN:', f['mean_pixel_value'][()])
-    for i in range(num_imgs):
-        #print(f['images'][i],f['images'][i].dtype)
-        #print(i,f['images'][i])
-        cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
-    #-------------------------------------------------------------
-    f.close()
-
-    '''
-    src_imgs_path = 'examples'
-    dst_imgs_path = 'squares'
-    utils.safe_copytree(src_imgs_path, dst_imgs_path,
-                        ['*.jpg', '*.jpeg', '*.png'])
-    num_crop = 3
-    gen_crop_id = cycle(range(num_crop))
-    img2_128x128crop = img2sqr_crop(128)
-    gen = \
-    pipe(utils.file_paths,
-         cmap(lambda path: (cv2.imread(path), path)),
-         cfilter(lambda img_path: img_path[0] is not None),
-         cflatMap(lambda img_path: repeat(img_path,num_crop)),
-         cmap(lambda img_path: \
-                (img2_128x128crop(img_path[0]), 
-                 path2crop_path(img_path[1],next(gen_crop_id)))),
-         cmap(lambda img_path: \
-                (img_path[0], 
-                 utils.make_dstpath(img_path[1],
-                                    src_imgs_path,
-                                    dst_imgs_path))))
-
-    for img,path in gen(src_imgs_path):
-        cv2.imwrite(path,img)
-        cv2.imshow('img',img);cv2.waitKey(0)
-        print(path)
-    '''
