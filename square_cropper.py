@@ -1,4 +1,4 @@
-import random, os, cv2
+import random, os, cv2, h5py
 import numpy as np
 from pymonad.Reader import curry
 
@@ -25,6 +25,9 @@ def path2crop_path(path, num, delimiter='_', ext='png'):
     name, _ = os.path.splitext(path)
     name = name + delimiter + str(num)
     return name + '.' + ext
+def gen_chunk(iterable, chk_size):
+    iters = [iter(iterable)] * chk_size
+    return zip(*iters)
 
 import unittest
 class Test(unittest.TestCase):
@@ -118,6 +121,8 @@ if __name__ == '__main__':
         print(path)
     '''
     #src_imgs_path = 'examples'
+    chk_size = 2
+    dataset_name = 'gray128.h5'
     src_imgs_path = 'e'
     num_crop = 3
     img2_128x128crop = img2sqr_crop(128)
@@ -126,12 +131,24 @@ if __name__ == '__main__':
                cfilter(lambda img: img is not None),
                cmap(lambda img: img[:,:,0]),
                cflatMap(crepeat(num_crop)),
-               cmap(lambda img:img2_128x128crop(img)))
+               cmap(lambda img: img2_128x128crop(img)),
+               lambda imgs: gen_chunk(imgs, chk_size))
 
+    #f = h5py.File(dataset_name,'w')
+    #-------------------------------------------------------------
     print(len(list(gen(src_imgs_path))))
+    '''
+    '''
     for img in gen(src_imgs_path):
         #cv2.imwrite(path,img)
-        print(img.shape)
-        cv2.imshow('img',img);cv2.waitKey(0)
+        print(img[0].shape,img[1].shape)
+        cv2.imshow('img',img[0]);cv2.waitKey(0)
+        cv2.imshow('img',img[1]);cv2.waitKey(0)
+    #-------------------------------------------------------------
+    #f.close()
 
-             
+    #f = h5py.File(dataset_name,'r')
+    #-------------------------------------------------------------
+
+    #-------------------------------------------------------------
+    #f.close()
