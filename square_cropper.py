@@ -116,7 +116,13 @@ if __name__ == '__main__':
     f.close()
     print('------------------------------------')
     print('dataset generated successfully.')
-    timer.elapsed_time()
+    msg = timer.elapsed_time()
+
+    import mailing
+    mailing.send_mail_to_kur(
+        'Dataset generated successfully.',msg
+    )
+    
 
     '''
     # [load test code]
