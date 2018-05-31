@@ -138,7 +138,7 @@ if __name__ == '__main__':
     #src_imgs_path = 'examples'
     src_imgs_path = 'e'
     dataset_name = 'gray128.h5'
-    chk_size = 4
+    chk_size = 5 
     num_crop = 3
     img_size = 128
 
@@ -161,25 +161,26 @@ if __name__ == '__main__':
     f.create_dataset('images', (num_imgs,img_size,img_size,1))
     #print(len(list(gen(src_imgs_path))))
     #mean = np.mean(
-    print(np.mean(list(flatten(gen(src_imgs_path)))))
+    li = list(flatten(gen(src_imgs_path)))
+    print(np.mean(li))
+    print(len(li))
     #183.25409671431737
-    for beg_idx, chunk in tqdm(enumerate(gen(src_imgs_path)),
-                               total=num_imgs//chk_size):
-        #print(type(chunk))
-        #print(chunk[0].shape)
+    i = 0
+    for chk_no, chunk in tqdm(enumerate(gen(src_imgs_path)),
+                              total=num_imgs//chk_size):
+        beg_idx = chk_no * chk_size 
+        '''
         if len(chunk) == chk_size:
             f['images'][beg_idx:beg_idx+chk_size] = chunk
         else:
             f['images'][beg_idx:beg_idx+len(chunk)] = chunk
+        '''
+        f['images'][beg_idx:beg_idx+chk_size] = chunk
 
         #cv2.imshow('img',img);cv2.waitKey(0)
         #for img in chunk:
             #cv2.imshow('img',img);cv2.waitKey(0)
             # in idx = 98, wtf???
-    print(f['images'][98])
-    cv2.imshow('img',f['images'][98]);cv2.waitKey(0)
-    print(f['images'][99])
-    cv2.imshow('img',f['images'][99]);cv2.waitKey(0)
     #-------------------------------------------------------------
     f.close()
 
