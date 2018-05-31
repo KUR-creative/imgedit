@@ -145,10 +145,11 @@ if __name__ == '__main__':
     img2_128x128crop = img2sqr_crop(img_size)
     gen = pipe(utils.file_paths,
                cmap(lambda path: cv2.imread(path)),
-               #cfilter(lambda img: img is not None),# imgs are separated grayscale imgs.
+               #cfilter(lambda img: img is not None),# imgs are pre-selected grayscale imgs.
                cmap(lambda img: img[:,:,0]),
                cflatMap(crepeat(num_crop)),
                cmap(lambda img: img2_128x128crop(img)),
+               cmap(lambda img: (img / 255).astype(np.float32)),
                lambda imgs: split_every(chk_size, imgs))
 
     f = h5py.File(dataset_name,'w')
@@ -183,6 +184,7 @@ if __name__ == '__main__':
     print('f', f['images'].shape)
     num_imgs = f['images'].shape[0] 
     for i in range(num_imgs):
+        print(f['images'][i],f['images'][i].dtype)
         cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
     #-------------------------------------------------------------
     f.close()
