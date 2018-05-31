@@ -2,6 +2,7 @@ import random, os, cv2, h5py
 import numpy as np
 from pymonad.Reader import curry
 
+from tqdm import tqdm
 import utils
 from itertools import repeat, cycle, islice
 from fp import pipe, cmap, cfilter, flatten, crepeat, cflatMap
@@ -20,7 +21,7 @@ def sqr_origin_yx(h, w, size):
 def img2sqr_crop(size, img):
     h,w = img.shape[:2]
     y,x = sqr_origin_yx(h, w, size)
-    return img[y:y+size,x:x+size]
+    return img[y:y+size,x:x+size].reshape((size,size,1))
 def path2crop_path(path, num, delimiter='_', ext='png'):
     name, _ = os.path.splitext(path)
     name = name + delimiter + str(num)
@@ -137,30 +138,51 @@ if __name__ == '__main__':
     dataset_name = 'gray128.h5'
     chk_size = 4
     num_crop = 3
-    img2_128x128crop = img2sqr_crop(128)
+    img_size = 128
+
+    num_imgs \
+      = len(list(utils.file_paths(src_imgs_path))) * num_crop
+    img2_128x128crop = img2sqr_crop(img_size)
     gen = pipe(utils.file_paths,
                cmap(lambda path: cv2.imread(path)),
-               cfilter(lambda img: img is not None),
+               #cfilter(lambda img: img is not None),# imgs are separated grayscale imgs.
                cmap(lambda img: img[:,:,0]),
                cflatMap(crepeat(num_crop)),
                cmap(lambda img: img2_128x128crop(img)),
                lambda imgs: split_every(chk_size, imgs))
 
-    #f = h5py.File(dataset_name,'w')
+    f = h5py.File(dataset_name,'w')
     #-------------------------------------------------------------
+    f.create_dataset('images', (num_imgs,img_size,img_size,1))
     #print(len(list(gen(src_imgs_path))))
+    #mean = np.mean(
+    print(np.mean(list(flatten(gen(src_imgs_path)))))
+    #183.25409671431737
     '''
     '''
-    for idx, chk in enumerate(gen(src_imgs_path)):
+    for beg_idx, chunk in tqdm(enumerate(gen(src_imgs_path)),
+                               total=num_imgs//chk_size):
+        #print(type(chunk))
+        #print(chunk[0].shape)
+        if len(chunk) == chk_size:
+            f['images'][beg_idx:beg_idx+chk_size] = chunk
+        else:
+            f['images'][beg_idx:beg_idx+len(chunk)] = chunk
+
+        '''
         #cv2.imwrite(path,img)
-        print(idx)
+        print(beg_idx)
         for img in chk:
             cv2.imshow('img',img);cv2.waitKey(0)
+        '''
     #-------------------------------------------------------------
-    #f.close()
+    f.close()
 
-    #f = h5py.File(dataset_name,'r')
+    f = h5py.File(dataset_name,'r')
     #-------------------------------------------------------------
-
+    print('f', f['images'].shape)
+    num_imgs = f['images'].shape[0] 
+    for i in range(num_imgs):
+        cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
     #-------------------------------------------------------------
-    #f.close()
+    f.close()
