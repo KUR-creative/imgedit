@@ -71,7 +71,8 @@ if __name__ == '__main__':
     chk_size = args.chk_size#100 #00 
 
     print(src_imgs_path)
-    num_imgs = len(list(utils.file_paths(src_imgs_path))) * num_crop
+    #num_imgs = len(list(utils.file_paths(src_imgs_path))) * num_crop
+    num_imgs = 1039863 # manually cached...
     print('-------------- SUMARY --------------')
     print('    dataset name = ', dataset_name)
     print('    size of crop = ', crop_size)
@@ -82,7 +83,7 @@ if __name__ == '__main__':
     img2_128x128crop = img2sqr_crop(crop_size)
     gen = pipe(utils.file_paths,
                cmap(lambda path: cv2.imread(path)),
-               #cfilter(lambda img: img is not None),# imgs are pre-selected grayscale imgs.
+               cfilter(lambda img: img is not None),# imgs are pre-selected grayscale imgs.
                cmap(slice1channel),
                cflatMap(crepeat(num_crop)),
                cmap(lambda img: img2_128x128crop(img)),
