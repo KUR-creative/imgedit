@@ -22,6 +22,10 @@ def slice1channel(img):
 def sqr_origin_yx(h, w, size):
     return random.randrange(h-size+1), random.randrange(w-size+1)
 
+def is_cuttable(img, size):
+    h,w = img.shape[:2]
+    return (h - size + 1 > 0) and (w - size + 1 > 0)
+
 @curry
 def img2sqr_crop(size, img):
     h,w,c = img.shape
@@ -83,7 +87,8 @@ if __name__ == '__main__':
     img2_128x128crop = img2sqr_crop(crop_size)
     gen = pipe(utils.file_paths,
                cmap(lambda path: cv2.imread(path)),
-               cfilter(lambda img: img is not None),# imgs are pre-selected grayscale imgs.
+               cfilter(lambda img: img is not None),
+               cfilter(lambda img: is_cuttable(img, crop_size)),
                cmap(slice1channel),
                cflatMap(crepeat(num_crop)),
                cmap(lambda img: img2_128x128crop(img)),
