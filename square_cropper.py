@@ -131,13 +131,14 @@ if __name__ == '__main__':
     print('dataset generated successfully.')
     msg = timer.elapsed_time()
 
+    '''
     import mailing
     mailing.send_mail_to_kur(
         'Dataset generated successfully.',msg
     )
+    '''
     
 
-    '''
     # [load test code]
     f = h5py.File(dataset_name,'r')
     #-------------------------------------------------------------
@@ -148,6 +149,7 @@ if __name__ == '__main__':
     cv2.imshow('img',f['images'][-1]);cv2.waitKey(0)
     #-------------------------------------------------------------
     f.close()
+    '''
     '''
 
 
