@@ -75,14 +75,13 @@ if __name__ == '__main__':
     chk_size = args.chk_size#100 #00 
 
     print(src_imgs_path)
-    #num_imgs = len(list(utils.file_paths(src_imgs_path))) * num_crop
-    num_imgs = 1039863 # manually cached...
+    expected_num_imgs = len(list(utils.file_paths(src_imgs_path))) * num_crop
     print('-------------- SUMARY --------------')
-    print('    dataset name = ', dataset_name)
-    print('    size of crop = ', crop_size)
-    print(' num of crop/img = ', num_crop)
-    print('  number of imgs = ', num_imgs)
-    print('      chunk size = ', chk_size)
+    print('      dataset name = ', dataset_name)
+    print('      size of crop = ', crop_size)
+    print(' num crops per img = ', num_crop)
+    print(' expected num imgs = ', expected_num_imgs)
+    print('        chunk size = ', chk_size)
 
     img2_128x128crop = img2sqr_crop(crop_size)
     gen = pipe(utils.file_paths,
@@ -98,18 +97,27 @@ if __name__ == '__main__':
     f = h5py.File(dataset_name,'w')
     timer = utils.ElapsedTimer()
     #-------------------------------------------------------------
-    f.create_dataset('images', (num_imgs,crop_size,crop_size,1))
+    f.create_dataset('images', 
+                     (expected_num_imgs,crop_size,crop_size,1),
+                       maxshape = (None,crop_size,crop_size,1),
+                     chunks = (chk_size,crop_size,crop_size,1))
 
     mean = 0
     num_img_elems = (crop_size**2)
     for chk_no, chunk in tqdm(enumerate(gen(src_imgs_path)),
-                              total=num_imgs//chk_size):
+                              total=expected_num_imgs//chk_size):
         beg_idx = chk_no * chk_size 
-        f['images'][beg_idx:beg_idx+chk_size] = chunk
+        f['images'][beg_idx:beg_idx+len(chunk)] = chunk
         mean = iter_mean(mean, beg_idx*num_img_elems,
                          np.sum(chunk), len(chunk)*num_img_elems)
-
     f.create_dataset('mean_pixel_value', data=mean)
+
+    last_chunk_size = len(chunk)
+    actual_num_img = chk_no * chk_size + last_chunk_size
+    if actual_num_img != expected_num_imgs:
+        print(expected_num_imgs,' != ',actual_num_img)
+        print('dataset resized!')
+        f['images'].resize((actual_num_img,crop_size,crop_size,1))
 
     # [mean test code]
     #li = list(flatten(gen(src_imgs_path)))
