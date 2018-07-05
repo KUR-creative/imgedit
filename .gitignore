@@ -1,13 +1,5 @@
+*
+*.*
+
+!*.py
 mailing.py
-*.pyc
-*.vim
-
-*.swp
-tags
-*.taghl
-
-*.jpg
-*.png
-*.gif
-*.xcf
-*.h5
