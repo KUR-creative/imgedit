@@ -15,10 +15,6 @@ def path2rgbimg(imgpath):
     img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
     return img
 
-def slice1channel(img):
-    ''' img is r=g=b image. '''
-    return img[:,:,0].reshape(img.shape[:2] + (1,))
-
 def sqr_origin_yx(h, w, size):
     return random.randrange(h-size+1), random.randrange(w-size+1)
 
@@ -88,7 +84,7 @@ if __name__ == '__main__':
                cmap(lambda path: cv2.imread(path)),
                cfilter(lambda img: img is not None),
                cfilter(lambda img: is_cuttable(img, crop_size)),
-               cmap(slice1channel),
+               cmap(tools.slice1channel),
                cflatMap(crepeat(num_crop)),
                cmap(lambda img: img2_128x128crop(img)),
                cmap(lambda img: (img / 255).astype(np.float32)),
