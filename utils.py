@@ -69,9 +69,9 @@ def make_dstpath(srcpath, old_parent, new_ancestors):
                       .joinpath(*p.parts[idx+1:]))
 
 def slice1channel(gray_rgb_img, channel=0):
-    ''' gray_rgb is r=g=b image. '''
+    ''' gray_rgb_img is r=g=b image. '''
     grayscale_img = gray_rgb_img[:,:,channel]
-    return grayscale_img.reshape(gray_rgb.shape[:2] + (1,))
+    return grayscale_img.reshape(gray_rgb_img.shape[:2] + (1,))
 
 import unittest
 class Test_replace_part_of_path(unittest.TestCase):

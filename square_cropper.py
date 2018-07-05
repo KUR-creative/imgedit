@@ -84,7 +84,7 @@ if __name__ == '__main__':
                cmap(lambda path: cv2.imread(path)),
                cfilter(lambda img: img is not None),
                cfilter(lambda img: is_cuttable(img, crop_size)),
-               cmap(tools.slice1channel),
+               cmap(utils.slice1channel),
                cflatMap(crepeat(num_crop)),
                cmap(lambda img: img2_128x128crop(img)),
                cmap(lambda img: (img / 255).astype(np.float32)),
