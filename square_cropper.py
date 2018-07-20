@@ -57,6 +57,17 @@ def img2sqr_crops(img, size):
     img_hw = img.shape[:2]
     h = w = size
     for y,x in hw2not_excess_start_yxs( (0,0), img_hw, (h,w) ):
+        #cv2.imshow(img[y:y+h, x:x+w]); cv2.waitKey(0)
+        print(y,x)
+        yield img[y:y+h, x:x+w]
+    for y,x in hw2not_excess_start_yxs( (0,w//4), img_hw, (h,w) ):
+        print(y,x)
+        yield img[y:y+h, x:x+w]
+    for y,x in hw2not_excess_start_yxs( (h//2,w//2), img_hw, (h,w) ):
+        print(y,x)
+        yield img[y:y+h, x:x+w]
+    for y,x in hw2not_excess_start_yxs( (h*3//4,w*3//4), img_hw, (h,w) ):
+        print(y,x)
         yield img[y:y+h, x:x+w]
 
 def path2crop_path(path, num, delimiter='_', ext='png'):
@@ -93,16 +104,7 @@ parser.add_argument('-c', '--chk_size', type=int,
                     help='size of chunk of data for performance.') 
 
 def main(src_imgs_path, dataset_name, num_crop, crop_size, chk_size):
-    print(src_imgs_path)
-    expected_num_imgs = len(list(utils.file_paths(src_imgs_path))) * num_crop
-    print('-------------- SUMARY --------------')
-    print('      dataset name = ', dataset_name)
-    print('      size of crop = ', crop_size)
-    print(' num crops per img = ', num_crop)
-    print(' expected num imgs = ', expected_num_imgs)
-    print('        chunk size = ', chk_size)
-
-    if num_crop != -1:
+    if num_crop != 0:
         rand_sqr_crop = img2rand_sqr_crops(crop_size)
         gen \
         = pipe(utils.file_paths,
@@ -115,15 +117,26 @@ def main(src_imgs_path, dataset_name, num_crop, crop_size, chk_size):
                cmap(lambda img: (img / 255).astype(np.float32)),
                lambda imgs: split_every(chk_size, imgs))
     else:
+        print('!')
+        num_crop = 100 # big enough value..
         gen \
         = pipe(utils.file_paths,
                cmap(lambda path: cv2.imread(path)),
                cfilter(lambda img: img is not None),
                cfilter(lambda img: is_cuttable(img, crop_size)),
                cmap(utils.slice1channel),
-
+               cflatMap(lambda img: img2sqr_crops(img, crop_size)),
                cmap(lambda img: (img / 255).astype(np.float32)),
                lambda imgs: split_every(chk_size, imgs))
+
+    print(src_imgs_path)
+    expected_num_imgs = len(list(utils.file_paths(src_imgs_path))) * num_crop
+    print('-------------- SUMARY --------------')
+    print('      dataset name = ', dataset_name)
+    print('      size of crop = ', crop_size)
+    print(' num crops per img = ', num_crop)
+    print(' expected num imgs = ', expected_num_imgs)
+    print('        chunk size = ', chk_size)
 
     f = h5py.File(dataset_name,'w')
     timer = utils.ElapsedTimer()
@@ -350,7 +363,7 @@ class hw2start_yxsTest(unittest.TestCase):
                                                       (20,20))),
                          [(40,20),(60,20)])
 if __name__ == '__main__':
-    unittest.main()
+    #unittest.main()
     args = parser.parse_args()
     src_imgs_path = args.src_imgs_path#'H:\\DATA2\\f'
     dataset_name = args.dataset_name#'gray128.h5'
