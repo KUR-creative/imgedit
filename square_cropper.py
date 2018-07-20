@@ -140,8 +140,8 @@ if __name__ == '__main__':
     #-------------------------------------------------------------
     print('f', f['images'].shape)
     print('loaded MEAN:', f['mean_pixel_value'][()])
-    #for i in range(f['images'].shape[0] ):
-        #cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
+    for i in range(f['images'].shape[0] ):
+        cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
     cv2.imshow('img',f['images'][-1]);cv2.waitKey(0)
     #-------------------------------------------------------------
     f.close()
