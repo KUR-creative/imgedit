@@ -54,7 +54,10 @@ def hw2not_excess_start_yxs(origin_yx, img_hw, piece_hw):
                   hw2start_yxs(origin_yx, img_hw, piece_hw))
 
 def img2sqr_crops(img, size):
-    pass
+    img_hw = img.shape[:2]
+    h = w = size
+    for y,x in hw2not_excess_start_yxs( (0,0), img_hw, (h,w) ):
+        yield img[y:y+h, x:x+w]
 
 def path2crop_path(path, num, delimiter='_', ext='png'):
     name, _ = os.path.splitext(path)
