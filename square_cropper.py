@@ -30,12 +30,28 @@ def img2rand_sqr_crops(size, img):
     return img[y:y+size,x:x+size].reshape((size,size,c))
 
 def hw2start_yxs(origin_yx, img_hw, piece_hw):
+    ''' 
+    Yield left-top coodinate of crops 
+    But coord can excess range of image..
+    '''
     org_y,org_x = origin_yx  
     img_h,img_w = img_hw
     piece_h,piece_w = piece_hw
     for y in range(org_y, img_h, piece_h):
         for x in range(org_x, img_w, piece_w):
             yield (y,x)
+def hw2not_excess_start_yxs(origin_yx, img_hw, piece_hw):
+    ''' 
+    Yield left-top coodinate of crops 
+    Coord cannot excess range of image
+    '''
+    img_h,img_w = img_hw
+    piece_h,piece_w = piece_hw
+    def not_excess(yx):
+        y,x = yx
+        return (y + piece_h < img_h) and (x + piece_w < img_w)
+    return filter(not_excess, 
+                  hw2start_yxs(origin_yx, img_hw, piece_hw))
 
 def img2sqr_crops(img, size):
     pass
