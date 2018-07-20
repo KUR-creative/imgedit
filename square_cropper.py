@@ -94,7 +94,8 @@ parser.add_argument('-d', '--dataset_name',
 parser.add_argument('-s', '--crop_size', type=int, 
                     help='size of crop(=128 or 256 ...).') 
 parser.add_argument('-n', '--num_crop', type=int, 
-                    help='number of crops per 1 original image.') 
+                    help='number of crops per 1 original image. \
+                    If 0, then it crops adaptive to img size.') 
 parser.add_argument('-c', '--chk_size', type=int, 
                     help='size of chunk of data for performance.') 
 
