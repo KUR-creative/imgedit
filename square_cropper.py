@@ -1,3 +1,4 @@
+import unittest
 import utils
 import argparse
 import random, os, cv2, h5py, sys
@@ -27,6 +28,17 @@ def img2rand_sqr_crops(size, img):
     h,w,c = img.shape
     y,x = sqr_origin_yx(h, w, size)
     return img[y:y+size,x:x+size].reshape((size,size,c))
+
+def hw2start_yxs(origin_yx, img_hw, piece_hw):
+    org_y,org_x = origin_yx  
+    img_h,img_w = img_hw
+    piece_h,piece_w = piece_hw
+    for y in range(org_y, img_h, piece_h):
+        for x in range(org_x, img_w, piece_w):
+            yield (y,x)
+
+def img2sqr_crops(img, size):
+    pass
 
 def path2crop_path(path, num, delimiter='_', ext='png'):
     name, _ = os.path.splitext(path)
@@ -61,15 +73,7 @@ parser.add_argument('-n', '--num_crop', type=int,
 parser.add_argument('-c', '--chk_size', type=int, 
                     help='size of chunk of data for performance.') 
 
-if __name__ == '__main__':
-    #unittest.main()
-    args = parser.parse_args()
-    src_imgs_path = args.src_imgs_path#'H:\\DATA2\\f'
-    dataset_name = args.dataset_name#'gray128.h5'
-    num_crop = args.num_crop# 3
-    crop_size = args.crop_size#128
-    chk_size = args.chk_size#100 #00 
-
+def main(src_imgs_path, dataset_name, num_crop, crop_size, chk_size):
     print(src_imgs_path)
     expected_num_imgs = len(list(utils.file_paths(src_imgs_path))) * num_crop
     print('-------------- SUMARY --------------')
@@ -189,7 +193,6 @@ if __name__ == '__main__':
         print(path)
     '''
 
-import unittest
 class Test(unittest.TestCase):
     @unittest.skip('no dir')
     def test_path2piece_path(self):
@@ -286,3 +289,53 @@ class Test(unittest.TestCase):
                              np.sum(chk),len(chk)*10)
         self.assertAlmostEqual(expected,mean)
 
+class hw2start_yxsTest(unittest.TestCase):
+    def test_mod0cases(self):
+        self.assertEqual(list(hw2start_yxs((0,0),(100,60),(20,20))),
+                         [( 0,0),( 0,20),( 0,40),
+                          (20,0),(20,20),(20,40),
+                          (40,0),(40,20),(40,40),
+                          (60,0),(60,20),(60,40),
+                          (80,0),(80,20),(80,40),])
+    def test_not_mod0cases(self):
+        self.assertEqual(list(hw2start_yxs((0,0),(90,49),(20,20))),
+                         [( 0,0),( 0,20),( 0,40),
+                          (20,0),(20,20),(20,40),
+                          (40,0),(40,20),(40,40),
+                          (60,0),(60,20),(60,40),
+                          (80,0),(80,20),(80,40),])
+    def test_not_excess(self):
+        self.assertEqual(list(hw2not_excess_start_yxs(( 0, 0),
+                                                      (91,49),
+                                                      (20,20))),
+                         [( 0,0),( 0,20),
+                          (20,0),(20,20),
+                          (40,0),(40,20),
+                          (60,0),(60,20),])
+    def test_origin_specified(self):
+        self.assertEqual(list(hw2start_yxs((40,20),
+                                           (90,49), 
+                                           (20,20))),
+                         [(40,20),(40,40),
+                          (60,20),(60,40),
+                          (80,20),(80,40),])
+
+        self.assertEqual(list(hw2start_yxs((30,10),
+                                           (90,49), 
+                                           (20,20))),
+                         [(30,10),(30,30), 
+                          (50,10),(50,30), 
+                          (70,10),(70,30)])
+        self.assertEqual(list(hw2not_excess_start_yxs((40,20),
+                                                      (91,49),
+                                                      (20,20))),
+                         [(40,20),(60,20)])
+if __name__ == '__main__':
+    unittest.main()
+    args = parser.parse_args()
+    src_imgs_path = args.src_imgs_path#'H:\\DATA2\\f'
+    dataset_name = args.dataset_name#'gray128.h5'
+    num_crop = args.num_crop# 3
+    crop_size = args.crop_size#128
+    chk_size = args.chk_size#100 #00 
+    main(src_imgs_path, dataset_name, num_crop, crop_size, chk_size)
