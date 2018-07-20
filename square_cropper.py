@@ -61,8 +61,8 @@ def img2sqr_crops(img, size):
                                      [0, 0.5])):
         org_yx = int(h*r_y),int(w*r_x)
         for y,x in hw2not_excess_start_yxs( org_yx, (i_h,i_w), (h,w) ):
-            print(y,x)
-            cv2.imshow('img',img[y:y+h, x:x+w]); cv2.waitKey(0)
+            #print(y,x)
+            #cv2.imshow('img',img[y:y+h, x:x+w]); cv2.waitKey(0)
             yield img[y:y+h, x:x+w]
 
 def path2crop_path(path, num, delimiter='_', ext='png'):
@@ -183,8 +183,8 @@ def main(src_imgs_path, dataset_name, num_crop, crop_size, chk_size):
     #-------------------------------------------------------------
     print('f', f['images'].shape)
     print('loaded MEAN:', f['mean_pixel_value'][()])
-    for i in range(f['images'].shape[0] ):
-        cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
+    #for i in range(f['images'].shape[0] ):
+        #cv2.imshow('img',f['images'][i]);cv2.waitKey(0)
     cv2.imshow('img',f['images'][-1]);cv2.waitKey(0)
     #-------------------------------------------------------------
     f.close()
