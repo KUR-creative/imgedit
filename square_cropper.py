@@ -49,26 +49,21 @@ def hw2not_excess_start_yxs(origin_yx, img_hw, piece_hw):
     piece_h,piece_w = piece_hw
     def not_excess(yx):
         y,x = yx
-        return (y + piece_h < img_h) and (x + piece_w < img_w)
+        return (y + piece_h - 1 < img_h) and (x + piece_w - 1< img_w)
     return filter(not_excess, 
                   hw2start_yxs(origin_yx, img_hw, piece_hw))
 
+import itertools 
 def img2sqr_crops(img, size):
-    img_hw = img.shape[:2]
+    i_h, i_w = img.shape[:2]
     h = w = size
-    for y,x in hw2not_excess_start_yxs( (0,0), img_hw, (h,w) ):
-        #cv2.imshow(img[y:y+h, x:x+w]); cv2.waitKey(0)
-        print(y,x)
-        yield img[y:y+h, x:x+w]
-    for y,x in hw2not_excess_start_yxs( (0,w//4), img_hw, (h,w) ):
-        print(y,x)
-        yield img[y:y+h, x:x+w]
-    for y,x in hw2not_excess_start_yxs( (h//2,w//2), img_hw, (h,w) ):
-        print(y,x)
-        yield img[y:y+h, x:x+w]
-    for y,x in hw2not_excess_start_yxs( (h*3//4,w*3//4), img_hw, (h,w) ):
-        print(y,x)
-        yield img[y:y+h, x:x+w]
+    for r_y,r_x in sorted(itertools.product([0, 0.5],
+                                     [0, 0.5])):
+        org_yx = int(h*r_y),int(w*r_x)
+        for y,x in hw2not_excess_start_yxs( org_yx, (i_h,i_w), (h,w) ):
+            print(y,x)
+            cv2.imshow('img',img[y:y+h, x:x+w]); cv2.waitKey(0)
+            yield img[y:y+h, x:x+w]
 
 def path2crop_path(path, num, delimiter='_', ext='png'):
     name, _ = os.path.splitext(path)
