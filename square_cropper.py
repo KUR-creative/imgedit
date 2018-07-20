@@ -23,7 +23,7 @@ def is_cuttable(img, size):
     return (h - size + 1 > 0) and (w - size + 1 > 0)
 
 @curry
-def img2sqr_crop(size, img):
+def img2rand_sqr_crops(size, img):
     h,w,c = img.shape
     y,x = sqr_origin_yx(h, w, size)
     return img[y:y+size,x:x+size].reshape((size,size,c))
@@ -79,14 +79,26 @@ if __name__ == '__main__':
     print(' expected num imgs = ', expected_num_imgs)
     print('        chunk size = ', chk_size)
 
-    img2_128x128crop = img2sqr_crop(crop_size)
-    gen = pipe(utils.file_paths,
+    if num_crop != -1:
+        rand_sqr_crop = img2rand_sqr_crops(crop_size)
+        gen \
+        = pipe(utils.file_paths,
                cmap(lambda path: cv2.imread(path)),
                cfilter(lambda img: img is not None),
                cfilter(lambda img: is_cuttable(img, crop_size)),
                cmap(utils.slice1channel),
                cflatMap(crepeat(num_crop)),
-               cmap(lambda img: img2_128x128crop(img)),
+               cmap(lambda img: rand_sqr_crop(img)),
+               cmap(lambda img: (img / 255).astype(np.float32)),
+               lambda imgs: split_every(chk_size, imgs))
+    else:
+        gen \
+        = pipe(utils.file_paths,
+               cmap(lambda path: cv2.imread(path)),
+               cfilter(lambda img: img is not None),
+               cfilter(lambda img: is_cuttable(img, crop_size)),
+               cmap(utils.slice1channel),
+
                cmap(lambda img: (img / 255).astype(np.float32)),
                lambda imgs: split_every(chk_size, imgs))
 
@@ -156,7 +168,7 @@ if __name__ == '__main__':
                         ['*.jpg', '*.jpeg', '*.png'])
     num_crop = 3
     gen_crop_id = cycle(range(num_crop))
-    img2_128x128crop = img2sqr_crop(128)
+    img2_128x128crop = img2rand_sqr_crops(128)
     gen = \
     pipe(utils.file_paths,
          cmap(lambda path: (cv2.imread(path), path)),
@@ -210,20 +222,20 @@ class Test(unittest.TestCase):
         img = np.ones((400,200,3))
         size = 5
         for _ in range(500):
-            square = img2sqr_crop(size,img)
+            square = img2rand_sqr_crops(size,img)
             self.assertEqual(square.shape[:2], (size,size))
         size = 15
         for _ in range(1000):
-            square = img2sqr_crop(size,img)
+            square = img2rand_sqr_crops(size,img)
             self.assertEqual(square.shape[:2], (size,size))
 
     def test_curried_img2sqr_piece(self):
         img = np.ones((400,200,3))
-        img2_5x5piece = img2sqr_crop(5)
+        img2_5x5piece = img2rand_sqr_crops(5)
         for _ in range(500):
             square = img2_5x5piece(img)
             self.assertEqual(square.shape[:2], (5,5))
-        img2_15x15piece = img2sqr_crop(15)
+        img2_15x15piece = img2rand_sqr_crops(15)
         for _ in range(1000):
             square = img2_15x15piece(img)
             self.assertEqual(square.shape[:2], (15,15))
@@ -231,7 +243,7 @@ class Test(unittest.TestCase):
     @unittest.skip('no dir')
     def test_img2sqr_pieces(self):
         img = cv2.imread('./examples/Kagamigami/Chapter 001 - RAW/004.jpg')
-        img2_128x128piece = img2sqr_crop(128)
+        img2_128x128piece = img2rand_sqr_crops(128)
         imgs = repeat(img,5)
         '''
         for square in map(img2_128x128piece, imgs):
